@@ -6,11 +6,13 @@ use crate::weapon::bullet::Bullet;
 
 ///敌人
 pub struct Enemy<'a>{
-    coordinate:comm::COORDINATE,
+    ///坐标点
+    pub coordinate:comm::COORDINATE,
     win_size:comm::WIN_SIZE,
     colour:colour::Colour,
     ///image
     pub image: &'a G2dTexture,
+    speed:f64,
     i:u8, //记录子弹发送间隔
 }
 
@@ -18,31 +20,35 @@ pub struct Enemy<'a>{
 impl <'a> Enemy<'a>{
     ///新建敌人
     /// per:百分比，最大100
-    pub fn new(per:u8,image:&'a G2dTexture) -> Enemy{
-        assert!(per < 100);
-        let width:f64 = comm::WIN_WIDTH * per as f64 / 100f64;
-        let height:f64 = comm::WIN_HEIGHT * per as f64 / 100f64;
+    pub fn new(per:f64,image:&'a G2dTexture) -> Enemy{
+        assert!(per < 1f64);
+        let width:f64 = comm::WIN_WIDTH * per;
+        let height:f64 = comm::WIN_HEIGHT * per;
         Enemy{
-            coordinate:[20f64,20f64],
+            coordinate:(20f64,20f64),
             win_size:[width,height],
             colour:colour::RED,
             image:image,
+            speed:comm::BASE_SPEED,
             i:0,
         }
     }
 
     ///发送子弹
-    pub fn shoot(& mut self) -> Bullet{
-        Bullet::new(self.coordinate)
+    fn shoot(& mut self,target:comm::COORDINATE) -> Bullet{
+        Bullet::new_with_target(self.coordinate,target)
     }
 
-    ///运动
-    pub fn run(&mut self) -> Option<Bullet>{
-        self.coordinate[0] = self.coordinate[0] + 0.1f64;
+    ///运动,返回射击的子弹
+    pub fn run(&mut self,target:comm::COORDINATE) -> Option<Bullet>{
+        let (x,y) = self.coordinate;
+        self.coordinate = (x + self.speed,y);
         self.i = self.i + 1;
         if self.i > 100 {
+            //间隔100次射击一次
+            println!("发射子弹");
             self.i = 0;
-            return Some(self.shoot())
+            return Some(self.shoot(target))
         }else{
             return None
         }
@@ -59,11 +65,12 @@ impl <'a> crate::map::draw::Draw for Enemy<'a>{
 
         // 获取图片尺寸
         let (width, height) = self.image.get_size();
+        let (x,y) = self.coordinate;
         Image::new().draw(
             self.image,
             &c.draw_state,
             c.transform
-                .trans(self.coordinate[0], self.coordinate[1]) //相对位置
+                .trans(x, y) //相对位置
                 .scale(self.win_size[0] / width as f64, self.win_size[1] / height as f64),    //缩放
             g);
     }

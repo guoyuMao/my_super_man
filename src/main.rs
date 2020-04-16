@@ -34,6 +34,13 @@ fn main() {
     //字体
     let mut glyphs:Glyphs = window.load_font(assets.join("FiraSans-Regular.ttf")).unwrap();
     //图片
+    let super_man_image: G2dTexture = Texture::from_path(
+        &mut window.create_texture_context(),
+        &assets.join("super_man.png"),
+        Flip::None,
+        &TextureSettings::new()
+    ).unwrap();
+
     let enemy_image: G2dTexture = Texture::from_path(
         &mut window.create_texture_context(),
         &assets.join("snake.jpg"),
@@ -49,21 +56,23 @@ fn main() {
         &TextureSettings::new()
     ).unwrap();
 
+    let super_man = person::super_man::Super_man::new(config::comm::PERSON_SIZE, &super_man_image);
+
+
     unsafe{
         config::comm::BULLET_TEXTURE = Option::Some(bullet_logo);
     }
 
     ///游戏实体
-    let mut game = Game::new();
+    let mut game = Game::new(super_man);
 
-    let mut enemy = person::enemy::Enemy::new(10, &enemy_image);
-    game.add_bullet(enemy.shoot());
+    let mut enemy = person::enemy::Enemy::new(config::comm::PERSON_SIZE, &enemy_image);
     game.add_enemy(enemy);
 
 
 
     while let Some(e) = window.next(){
-        game.run();
+        game.run(&e);
         if let Some(r) = e.render_args(){
             window.draw_2d(&e, |c, g, device| {
                 clear(config::colour::WHITE, g);

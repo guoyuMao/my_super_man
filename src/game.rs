@@ -9,7 +9,11 @@ use std::ops::Deref;
 
 ///游戏要素
 pub struct Game<'a>{
+    ///超人
+    pub super_man:super_man::Super_man<'a>,
+    ///敌人
     enemys:Vec<enemy::Enemy<'a>>,
+    ///子弹
     bullets:Vec<bullet::Bullet>,
 }
 
@@ -17,8 +21,9 @@ pub struct Game<'a>{
 impl<'a> Game<'a>{
 
     ///new Game
-    pub fn new()-> Game<'a>{
+    pub fn new(super_man:super_man::Super_man<'a>)-> Game<'a>{
         Game{
+            super_man,
             enemys:Vec::new(),
             bullets:Vec::new(),
         }
@@ -35,9 +40,12 @@ impl<'a> Game<'a>{
     }
 
     ///运动
-    pub fn run(&mut self){
-        for enemy in self.enemys.iter_mut(){
-            let bullet_opt:Option<Bullet> = enemy.run();
+    pub fn run(&mut self,e:&Event){
+        self.super_man.exec(e);
+
+        let mut remove_index_list:Vec<usize> = Vec::new();
+        for (index,enemy) in self.enemys.iter_mut().enumerate(){
+            let bullet_opt:Option<Bullet> = enemy.run(self.super_man.coordinate);
             match bullet_opt {
                 Some(bullet) => {
                     self.bullets.push(bullet);
@@ -45,14 +53,20 @@ impl<'a> Game<'a>{
                 None => {
                 }
             }
+            let (x,y) = enemy.coordinate;
+            if x > comm::WIN_WIDTH || x < -1f64 || y > comm::WIN_HEIGHT || y < -1f64 {
+                remove_index_list.push(index);
+            };
+        }
+        for index in remove_index_list{
+            self.enemys.remove(index);
         }
 
-        println!("this bullet count is {}", self.bullets.len());
 
         let mut del_index_list = Vec::new();
         for (index,bullet) in self.bullets.iter_mut().enumerate(){
-            let coord = bullet.coordinate;
-            if coord[0] > comm::WIN_WIDTH{
+            let (x,y) = bullet.coordinate;
+            if x > comm::WIN_WIDTH{
                 del_index_list.push(index);
             }
             bullet.run();
@@ -70,6 +84,7 @@ impl <'a> crate::map::draw::Draw for Game<'a>{
 
     ///画图
     fn draw (&self, glyphs:&mut Glyphs,c:Context, g:&mut G2d, device:&mut gfx_device_gl::Device){
+        self.super_man.draw(glyphs, c, g, device);
 
         for enemy in self.enemys.iter(){
             enemy.draw(glyphs, c, g, device);
