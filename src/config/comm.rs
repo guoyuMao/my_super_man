@@ -19,14 +19,16 @@ pub const WIN_HEIGHT:f64 = 500f64;
 ///窗口大小
 pub type WIN_SIZE = [f64;2];
 
-///子弹图片
-pub static mut BULLET_TEXTURE:Option<G2dTexture> = None;
+///子弹图片1
+pub static mut BULLET_TEXTURE_LEVEL1:Option<G2dTexture> = None;
+///子弹图片2
+pub static mut BULLET_TEXTURE_LEVEL2:Option<G2dTexture> = None;
 
 
 ///基础速度
-pub const BASE_SPEED:f64  = 0.3f64;
+pub const BASE_SPEED:f64  = 0.5f64;
 ///加速度
 pub const ACCELERATION:f64 = 0.5f64;
 
 ///子弹速度
-pub const BULLET_SPEED:f64 = 0.5f64;
+pub const BULLET_SPEED:f64 = 1f64;

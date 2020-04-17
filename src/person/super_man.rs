@@ -14,6 +14,7 @@ pub struct Super_man<'a>{
     pub image: &'a G2dTexture,
     angle:f64, //角度
     speed:f64, //速度
+    fire:bool, //开火?
     i:u8, //记录子弹发送间隔
 }
 
@@ -26,18 +27,19 @@ impl <'a> Super_man<'a>{
         let width:f64 = comm::WIN_WIDTH * per;
         let height:f64 = comm::WIN_HEIGHT * per;
         Super_man{
-            coordinate:(50f64,50f64),
+            coordinate:(250f64,250f64),
             win_size:[width,height],
             image:image,
             angle:0f64,
             speed:comm::BASE_SPEED,
+            fire:false,
             i:0,
         }
     }
 
     ///发送子弹
     fn shoot(& mut self) -> Bullet{
-        Bullet::new_with_angle(self.coordinate,self.angle)
+        Bullet::new_with_angle(self.coordinate,self.angle,weapon::bullet::BulletType::level2)
     }
 
     ///运动,返回射击的子弹
@@ -50,26 +52,29 @@ impl <'a> Super_man<'a>{
                 //移动位置
                 Button::Keyboard(Key::Up) =>  {
                     self.coordinate = (x, y - self.speed);
-                    self.angle = consts::FRAC_PI_2;
+                    self.angle = consts::FRAC_PI_2 * 3f64;
                 },
                 Button::Keyboard(Key::Down) => {
                     self.coordinate = (x, y + self.speed);
-                    self.angle = consts::FRAC_PI_3 * 4f64;
+                    self.angle = consts::FRAC_PI_2;
                 },
                 Button::Keyboard(Key::Left) => {
                     self.coordinate = (x - self.speed, y);
-                    self.angle = consts::FRAC_1_PI;
+                    self.angle = consts::PI;
                 },
                 Button::Keyboard(Key::Right) => {
                     self.coordinate = (x + self.speed, y);
                     self.angle = 0f64;
                 }
+                Button::Keyboard(Key::B) => {
+                    //发送子弹
+                    self.fire = true;
+                    if self.i == 0{
+                        self.i = 101;
+                    }
+                }
                 Button::Keyboard(Key::Space) => {
                     self.speed = comm::ACCELERATION;    //加速度
-                }
-                Button::Keyboard(Key::B) => {
-                     //发送子弹
-                    return Some(self.shoot());
                 }
                 _ => {},
             }
@@ -80,11 +85,24 @@ impl <'a> Super_man<'a>{
             match button {
                 //释放速度
                 Button::Keyboard(Key::Space) => self.speed = comm::BASE_SPEED,
+                //停止射击
+                Button::Keyboard(Key::B) => {
+                    self.fire = false;
+                    self.i = 0;
+                },
                 _ => {},
             }
         };
 
-        None
+        if self.fire{
+            //控制子弹发射速度
+            if self.i > 100 {
+                return Some(self.shoot());
+            }else{
+                self.i = self.i + 1;
+            }
+        }
+            None
     }
 }
 

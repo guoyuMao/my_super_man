@@ -13,7 +13,7 @@ pub struct Enemy<'a>{
     ///image
     pub image: &'a G2dTexture,
     speed:f64,
-    i:u8, //记录子弹发送间隔
+    i:u16, //记录子弹发送间隔
 }
 
 ///敌人
@@ -25,7 +25,7 @@ impl <'a> Enemy<'a>{
         let width:f64 = comm::WIN_WIDTH * per;
         let height:f64 = comm::WIN_HEIGHT * per;
         Enemy{
-            coordinate:(20f64,20f64),
+            coordinate:(200f64,200f64),
             win_size:[width,height],
             colour:colour::RED,
             image:image,
@@ -36,15 +36,15 @@ impl <'a> Enemy<'a>{
 
     ///发送子弹
     fn shoot(& mut self,target:comm::COORDINATE) -> Bullet{
-        Bullet::new_with_target(self.coordinate,target)
+        Bullet::new_with_target(self.coordinate,target,weapon::bullet::BulletType::level1)
     }
 
     ///运动,返回射击的子弹
     pub fn run(&mut self,target:comm::COORDINATE) -> Option<Bullet>{
         let (x,y) = self.coordinate;
-        self.coordinate = (x + self.speed,y);
+        self.coordinate = (x + self.speed * 0.01,y);
         self.i = self.i + 1;
-        if self.i > 100 {
+        if self.i > 300 {
             //间隔100次射击一次
             println!("发射子弹");
             self.i = 0;

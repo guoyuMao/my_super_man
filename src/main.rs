@@ -43,15 +43,22 @@ fn main() {
 
     let enemy_image: G2dTexture = Texture::from_path(
         &mut window.create_texture_context(),
-        &assets.join("snake.jpg"),
+        &assets.join("enemy.jpg"),
         Flip::None,
         &TextureSettings::new()
     ).unwrap();
 
-    let bullet_logo: G2dTexture = Texture::from_path(
+    let bullet1_logo: G2dTexture = Texture::from_path(
         &mut window.create_texture_context(),
-        // &assets.join("apple.png"),
-        &assets.join("mongo.jpg"),
+        // &assets.join("bullet2.png"),
+        &assets.join("bullet1.jpg"),
+        Flip::None,
+        &TextureSettings::new()
+    ).unwrap();
+
+    let bullet2_logo: G2dTexture = Texture::from_path(
+        &mut window.create_texture_context(),
+        &assets.join("bullet2.png"),
         Flip::None,
         &TextureSettings::new()
     ).unwrap();
@@ -60,7 +67,9 @@ fn main() {
 
 
     unsafe{
-        config::comm::BULLET_TEXTURE = Option::Some(bullet_logo);
+        //初始化加载子弹图片
+        config::comm::BULLET_TEXTURE_LEVEL1 = Option::Some(bullet1_logo);
+        config::comm::BULLET_TEXTURE_LEVEL2 = Option::Some(bullet2_logo);
     }
 
     ///游戏实体

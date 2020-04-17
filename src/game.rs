@@ -13,8 +13,10 @@ pub struct Game<'a>{
     pub super_man:super_man::Super_man<'a>,
     ///敌人
     enemys:Vec<enemy::Enemy<'a>>,
-    ///子弹
-    bullets:Vec<bullet::Bullet>,
+    ///超人发射的子弹
+    super_man_shoot_bullets:Vec<bullet::Bullet>,
+    ///敌人发射的子弹
+    enemy_shoot_bullets:Vec<bullet::Bullet>,
 }
 
 ///game operator
@@ -25,7 +27,8 @@ impl<'a> Game<'a>{
         Game{
             super_man,
             enemys:Vec::new(),
-            bullets:Vec::new(),
+            super_man_shoot_bullets:Vec::new(),
+            enemy_shoot_bullets:Vec::new(),
         }
     }
 
@@ -34,21 +37,25 @@ impl<'a> Game<'a>{
         self.enemys.push(enemy);
     }
 
-    ///增加一个子弹
-    pub fn add_bullet(&mut self, bullet:bullet::Bullet){
-        self.bullets.push(bullet);
-    }
-
     ///运动
     pub fn run(&mut self,e:&Event){
-        self.super_man.exec(e);
+        //超人运动
+        let bullet_option:Option<Bullet> = self.super_man.exec(e);
+        match bullet_option {
+            Some(bullet) => {
+                self.super_man_shoot_bullets.push(bullet);
+            }
+            None => {
+            }
+        }
 
+        //敌人运动
         let mut remove_index_list:Vec<usize> = Vec::new();
         for (index,enemy) in self.enemys.iter_mut().enumerate(){
             let bullet_opt:Option<Bullet> = enemy.run(self.super_man.coordinate);
             match bullet_opt {
                 Some(bullet) => {
-                    self.bullets.push(bullet);
+                    self.enemy_shoot_bullets.push(bullet);
                 }
                 None => {
                 }
@@ -58,13 +65,16 @@ impl<'a> Game<'a>{
                 remove_index_list.push(index);
             };
         }
+
+        //清理屏幕之外的敌人
         for index in remove_index_list{
             self.enemys.remove(index);
         }
 
 
+        //删除超人失效的子弹
         let mut del_index_list = Vec::new();
-        for (index,bullet) in self.bullets.iter_mut().enumerate(){
+        for (index,bullet) in self.super_man_shoot_bullets.iter_mut().enumerate(){
             let (x,y) = bullet.coordinate;
             if x > comm::WIN_WIDTH{
                 del_index_list.push(index);
@@ -72,8 +82,23 @@ impl<'a> Game<'a>{
             bullet.run();
         }
         for index in del_index_list{
-            self.bullets.remove(index);
+            self.super_man_shoot_bullets.remove(index);
         }
+
+        //删除敌人失效的子弹
+        let mut del_index_list = Vec::new();
+        for (index,bullet) in self.enemy_shoot_bullets.iter_mut().enumerate(){
+            let (x,y) = bullet.coordinate;
+            if x > comm::WIN_WIDTH{
+                del_index_list.push(index);
+            }
+            bullet.run();
+        }
+        for index in del_index_list{
+            self.enemy_shoot_bullets.remove(index);
+        }
+
+        //处理击中，和子弹碰撞
     }
 
 }
@@ -86,11 +111,17 @@ impl <'a> crate::map::draw::Draw for Game<'a>{
     fn draw (&self, glyphs:&mut Glyphs,c:Context, g:&mut G2d, device:&mut gfx_device_gl::Device){
         self.super_man.draw(glyphs, c, g, device);
 
+        //敌人
         for enemy in self.enemys.iter(){
             enemy.draw(glyphs, c, g, device);
         }
 
-        for bullet in self.bullets.iter(){
+        //超人子弹
+        for bullet in self.super_man_shoot_bullets.iter(){
+            bullet.draw(glyphs, c, g, device);
+        }
+        //敌人超人子弹
+        for bullet in self.enemy_shoot_bullets.iter(){
             bullet.draw(glyphs, c, g, device);
         }
     }
