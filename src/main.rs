@@ -41,9 +41,15 @@ fn main() {
         &TextureSettings::new()
     ).unwrap();
 
-    let enemy_image: G2dTexture = Texture::from_path(
+    let enemy_image1: G2dTexture = Texture::from_path(
         &mut window.create_texture_context(),
-        &assets.join("enemy.jpg"),
+        &assets.join("enemy1.png"),
+        Flip::None,
+        &TextureSettings::new()
+    ).unwrap();
+    let enemy_image2: G2dTexture = Texture::from_path(
+        &mut window.create_texture_context(),
+        &assets.join("enemy2.png"),
         Flip::None,
         &TextureSettings::new()
     ).unwrap();
@@ -63,22 +69,33 @@ fn main() {
         &TextureSettings::new()
     ).unwrap();
 
-    let super_man = person::super_man::Super_man::new(config::comm::PERSON_SIZE, &super_man_image);
-
+    let explode_logo1: G2dTexture = Texture::from_path(
+        &mut window.create_texture_context(),
+        &assets.join("explode1.jpg"),
+        Flip::None,
+        &TextureSettings::new()
+    ).unwrap();
+    let explode_logo2: G2dTexture = Texture::from_path(
+        &mut window.create_texture_context(),
+        &assets.join("explode2.jpg"),
+        Flip::None,
+        &TextureSettings::new()
+    ).unwrap();
 
     unsafe{
         //初始化加载子弹图片
         config::comm::BULLET_TEXTURE_LEVEL1 = Option::Some(bullet1_logo);
         config::comm::BULLET_TEXTURE_LEVEL2 = Option::Some(bullet2_logo);
+        config::comm::ENEMY_TEXTURE1 = Option::Some(enemy_image1);
+        config::comm::ENEMY_TEXTURE2 = Option::Some(enemy_image2);
+        config::comm::EXPLODE_TEXTURE1 = Option::Some(explode_logo1);
+        config::comm::EXPLODE_TEXTURE2 = Option::Some(explode_logo2);
     }
+
+    let super_man = person::super_man::Super_man::new(config::comm::PERSON_SIZE, &super_man_image);
 
     ///游戏实体
     let mut game = Game::new(super_man);
-
-    let mut enemy = person::enemy::Enemy::new(config::comm::PERSON_SIZE, &enemy_image);
-    game.add_enemy(enemy);
-
-
 
     while let Some(e) = window.next(){
         game.run(&e);

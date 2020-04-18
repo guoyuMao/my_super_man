@@ -21,10 +21,12 @@ pub const height_pre:f64 = 2f64 / 100f64;
 pub struct Bullet{
     ///坐标点
     pub coordinate:comm::COORDINATE,
-    win_size:comm::WIN_SIZE,
+    ///大小
+    pub win_size:comm::WIN_SIZE,
     bullet_type:BulletType,
     angle:f64, //角度,弧度计算
-    speed:f64,
+    step_time:u32,
+    step_length:f64,
 }
 
 
@@ -33,18 +35,7 @@ impl  Bullet{
 
     ///创建子弹,确定目标后发送子弹
     pub fn new_with_target(start:comm::COORDINATE,target:comm::COORDINATE,bullet_type:BulletType) -> Bullet{
-        let (x,y) = start;
-        let (x1,y1) = target;
-        // let y1 = -y1; //游戏坐标系与实际坐标系上下相反
-        let a = x1 - x; //a
-        let b = y1 - y; //b
-
-        //计算角度
-        let mut angle = (b/a).atan();
-        if a < 0f64{
-            angle = -(consts::PI - angle);
-        }
-        Bullet::new_with_angle(start,angle,bullet_type)
+        Bullet::new_with_angle(start,comm::calc_angle(start,target),bullet_type)
     }
     ///创建子弹，确定角度后发送子弹
     pub fn new_with_angle(start:comm::COORDINATE,angle:f64,bullet_type:BulletType) -> Bullet{
@@ -56,17 +47,23 @@ impl  Bullet{
             win_size:[width,height],
             angle:angle,
             bullet_type,
-            speed:comm::BULLET_SPEED,
+            step_time: comm::BULLET_STEP_TIME,
+            step_length:comm::BULLET_STEP_LENGTH
         }
     }
 
     ///子弹运动中
     pub fn run(&mut self){
-        let(x,y) = self.coordinate;
-        let a = self.angle.cos() * comm::BULLET_SPEED; //横向移动距离
-        let b = self.angle.sin() * comm::BULLET_SPEED; //纵向移动距离
-        println!("a:{},b:{}", a, b);
-        self.coordinate = (x + a,y + b);
+        if self.step_time <= 0u32 {
+            let(x,y) = self.coordinate;
+            let a = self.angle.cos() * self.step_length; //横向移动距离
+            let b = self.angle.sin() * self.step_length; //纵向移动距离
+            self.coordinate = (x + a,y + b);
+            self.step_time = comm::BULLET_STEP_TIME;
+        }else{
+            self.step_time = self.step_time - 1u32;
+        }
+
     }
 }
 
@@ -84,22 +81,18 @@ impl  crate::map::draw::Draw for Bullet {
                 BulletType::level2 => texture = &comm::BULLET_TEXTURE_LEVEL2,
                 _ => {}
             }
-            match texture {
-                Some(image) => {
-                    // 获取图片尺寸
-                    let (width, height) = image.get_size();
-                    let(x,y) = self.coordinate;
-                    Image::new().draw(
-                        image,
-                        &c.draw_state,
-                        c.transform
-                            .trans(x,y) //相对位置
-                            .scale(self.win_size[0] / width as f64, self.win_size[1] / height as f64),    //缩放
-                        g);
-                }
-                None => {
-                    panic!("子弹图片加载失败")
-                }
+
+            if let Some(image) = texture{
+                // 获取图片尺寸
+                let (width, height) = image.get_size();
+                let(x,y) = self.coordinate;
+                Image::new().draw(
+                    image,
+                    &c.draw_state,
+                    c.transform
+                        .trans(x,y) //相对位置
+                        .scale(self.win_size[0] / width as f64, self.win_size[1] / height as f64),    //缩放
+                    g);
             }
         }
     }

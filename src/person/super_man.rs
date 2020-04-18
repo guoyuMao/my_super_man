@@ -5,6 +5,7 @@ use piston_window::*;
 use crate::weapon::bullet::Bullet;
 use std::f64::consts;
 
+
 ///超人
 pub struct Super_man<'a>{
     ///坐标点
@@ -13,9 +14,11 @@ pub struct Super_man<'a>{
     ///image
     pub image: &'a G2dTexture,
     angle:f64, //角度
-    speed:f64, //速度
+    step_time:u32,
+    step_length:f64,
+    speed_up:bool,//加速
     fire:bool, //开火?
-    i:u8, //记录子弹发送间隔
+    fire_split_time:u16, //记录子弹发送间隔
 }
 
 ///敌人
@@ -31,50 +34,83 @@ impl <'a> Super_man<'a>{
             win_size:[width,height],
             image:image,
             angle:0f64,
-            speed:comm::BASE_SPEED,
+            step_time:comm::SUPER_MAN_STEP_TIME,
+            step_length:comm::SUPER_MAN_LENGTH,
+            speed_up:false,
             fire:false,
-            i:0,
+            fire_split_time:comm::SUPER_MAN_OPEN_FIRE_SPLIT_TIME,
         }
     }
 
-    ///发送子弹
+    ///运动
+    fn run(&mut self) {
+        //运动
+        if self.step_time <= 0u32 {
+            let (x, y) = self.coordinate;
+            let a = self.angle.cos() * self.step_length; //横向移动距离
+            let b = self.angle.sin() * self.step_length; //纵向移动距离
+            self.coordinate = (x + a, y + b);
+            if self.speed_up{
+                self.step_time = comm::SUPER_MAN_STEP_TIME / 2u32;
+            }else{
+                self.step_time = comm::SUPER_MAN_STEP_TIME;
+            }
+        } else {
+            self.step_time = self.step_time - 1u32;
+        }
+    }
+
+        ///发送子弹
     fn shoot(& mut self) -> Bullet{
         Bullet::new_with_angle(self.coordinate,self.angle,weapon::bullet::BulletType::level2)
     }
 
     ///运动,返回射击的子弹
     pub fn exec(&mut self,e:&Event) -> Option<Bullet>{
+        self.run();
+
         //按键盘
         if let Some(button) = e.press_args() {
             let (x,y) = self.coordinate;
             //获取键盘事件
             match button {
+                //控制角度
+                Button::Mouse(MouseButton::Left) => {
+                    //获取鼠标坐标
+                    unsafe{
+                            if let Some(button) = e.press_args() {
+                                //按压事件
+                                if let Some(mouse_x_y) = comm::CURRENT_MOUSE_COORDINATE{
+                                    let angle = comm::calc_angle(self.coordinate, mouse_x_y);
+                                    self.angle = angle;
+                                }
+                            };
+                    }
+                }
+
                 //移动位置
                 Button::Keyboard(Key::Up) =>  {
-                    self.coordinate = (x, y - self.speed);
+                    self.coordinate = (x, y - self.step_length);
                     self.angle = consts::FRAC_PI_2 * 3f64;
                 },
                 Button::Keyboard(Key::Down) => {
-                    self.coordinate = (x, y + self.speed);
+                    self.coordinate = (x, y + self.step_length);
                     self.angle = consts::FRAC_PI_2;
                 },
                 Button::Keyboard(Key::Left) => {
-                    self.coordinate = (x - self.speed, y);
+                    self.coordinate = (x - self.step_length, y);
                     self.angle = consts::PI;
                 },
                 Button::Keyboard(Key::Right) => {
-                    self.coordinate = (x + self.speed, y);
+                    self.coordinate = (x + self.step_length, y);
                     self.angle = 0f64;
                 }
                 Button::Keyboard(Key::B) => {
                     //发送子弹
                     self.fire = true;
-                    if self.i == 0{
-                        self.i = 101;
-                    }
                 }
                 Button::Keyboard(Key::Space) => {
-                    self.speed = comm::ACCELERATION;    //加速度
+                    self.speed_up = true;    //加速度
                 }
                 _ => {},
             }
@@ -84,11 +120,11 @@ impl <'a> Super_man<'a>{
         if let Some(button) = e.release_args(){
             match button {
                 //释放速度
-                Button::Keyboard(Key::Space) => self.speed = comm::BASE_SPEED,
+                Button::Keyboard(Key::Space) => self.speed_up = false,
                 //停止射击
                 Button::Keyboard(Key::B) => {
                     self.fire = false;
-                    self.i = 0;
+                    self.fire_split_time = comm::SUPER_MAN_OPEN_FIRE_SPLIT_TIME;
                 },
                 _ => {},
             }
@@ -96,10 +132,12 @@ impl <'a> Super_man<'a>{
 
         if self.fire{
             //控制子弹发射速度
-            if self.i > 100 {
+            if self.fire_split_time <= 0 {
+                //发射子弹
+                self.fire_split_time = comm::SUPER_MAN_OPEN_FIRE_SPLIT_TIME;
                 return Some(self.shoot());
             }else{
-                self.i = self.i + 1;
+                self.fire_split_time = self.fire_split_time - 1;
             }
         }
             None
