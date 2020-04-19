@@ -53,7 +53,7 @@ pub const SUPER_MAN_STEP_TIME:u32=5u32;
 pub const SUPER_MAN_LENGTH:f64=0.5f64;
 
 ///敌人发送子弹的间隔时间
-pub const ENEMY_OPEN_FIRE_SPLIT_TIME:u16 = 200u16;
+pub const ENEMY_OPEN_FIRE_SPLIT_TIME:u16 = 1000u16;
 ///超人发送子弹间隔时间
 pub const SUPER_MAN_OPEN_FIRE_SPLIT_TIME:u16 = 10u16;
 

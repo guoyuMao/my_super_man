@@ -140,7 +140,7 @@ impl <'a> Super_man<'a>{
                 self.fire_split_time = self.fire_split_time - 1;
             }
         }
-            None
+        None
     }
 }
 

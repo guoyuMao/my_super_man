@@ -66,74 +66,63 @@ impl<'a> Game<'a>{
 
         //超人运动
         let bullet_option:Option<Bullet> = self.super_man.exec(e);
-        match bullet_option {
-            Some(bullet) => {
-                self.super_man_shoot_bullets.push(bullet);
-            }
-            None => {
-            }
+        if let Some(bullet) = bullet_option{
+            self.super_man_shoot_bullets.push(bullet);
         }
 
         //敌人运动
-        let mut remove_index_list:Vec<usize> = Vec::new();
-        for (index,enemy) in self.enemys.iter_mut().enumerate(){
-            let bullet_opt:Option<Bullet> = enemy.run(self.super_man.coordinate);
-            match bullet_opt {
-                Some(bullet) => {
-                    self.enemy_shoot_bullets.push(bullet);
-                }
-                None => {
-                }
+        for enemy in self.enemys.iter_mut(){
+            let bullet_option:Option<Bullet> = enemy.run(self.super_man.coordinate);
+            if let Some(bullet) = bullet_option{
+                self.enemy_shoot_bullets.push(bullet);
             }
         }
-
-        //清理屏幕之外的敌人
-        for index in remove_index_list{
-            self.enemys.remove(index);
-        }
-
 
         //删除超人失效的子弹
-        let mut del_index_list = Vec::new();
-        for (index,bullet) in self.super_man_shoot_bullets.iter_mut().enumerate(){
+        let mut del_coordinate_list = Vec::new();
+        for bullet in self.super_man_shoot_bullets.iter_mut(){
             let (x,y) = bullet.coordinate;
-            if x > comm::WIN_WIDTH{
-                del_index_list.push(index);
+            if x > comm::WIN_WIDTH || x <= 0f64 || y > comm::WIN_HEIGHT || y <= 0f64{
+                del_coordinate_list.push(bullet.coordinate);
             }
             bullet.run();
         }
-        for index in del_index_list{
-            self.super_man_shoot_bullets.remove(index);
-        }
+        self.super_man_shoot_bullets.retain(|x|{
+           return !del_coordinate_list.contains(&x.coordinate)
+        });
 
         //删除敌人失效的子弹
-        let mut del_index_list = Vec::new();
-        for (index,bullet) in self.enemy_shoot_bullets.iter_mut().enumerate(){
+        let mut del_coordinate_list = Vec::new();
+        for bullet in self.enemy_shoot_bullets.iter_mut(){
             let (x,y) = bullet.coordinate;
-            if x > comm::WIN_WIDTH{
-                del_index_list.push(index);
+            if x > comm::WIN_WIDTH || x <= 0f64 || y > comm::WIN_HEIGHT || y <= 0f64{
+                del_coordinate_list.push(bullet.coordinate);
             }
             bullet.run();
         }
-        for index in del_index_list{
-            self.enemy_shoot_bullets.remove(index);
-        }
+        self.enemy_shoot_bullets.retain(|x|{
+            return !del_coordinate_list.contains(&x.coordinate);
+        });
 
-        let mut enemy_del_index_list = Vec::new();
-        let mut bullet_del_index_list = Vec::new();
-        //计算四万的敌人
-        for  (i,enemy) in self.enemys.iter_mut().enumerate() {
+        let mut enemy_del_coordinate_list:Vec<comm::COORDINATE> = Vec::new();
+        let mut bullet_del_coordinate_list:Vec<comm::COORDINATE> = Vec::new();
+        //计算死亡的敌人
+        for  enemy in self.enemys.iter() {
             let (e_x1, e_y1) = enemy.coordinate;
             let e_x2 = e_x1 + enemy.win_size[0];
             let e_y2 = e_y1 + enemy.win_size[1];
             //遍历敌人
-            for (j,bullet) in self.super_man_shoot_bullets.iter().enumerate() {
+            for bullet in self.super_man_shoot_bullets.iter() {
                 let (m_x1,m_y1) = bullet.coordinate;
                 let m_x2 = m_x1 + bullet.win_size[0];
-                let m_y2:f64 = m_y1 + bullet.win_size[0];
+                let m_y2:f64 = m_y1 + bullet.win_size[1];
                 if e_x2 > m_x1 && e_x1 < m_x2{
                     //x重叠
                     if e_y2 > m_y1 && e_y1 < m_y2{
+                        //y重叠
+                        enemy_del_coordinate_list.push(enemy.coordinate);
+                        bullet_del_coordinate_list.push(bullet.coordinate);
+
                         let mx = (m_x1 + m_x2) / 2f64;
                         let my = (m_y1 + m_y2) / 2f64;
                         let ex = (e_x1 + e_x2) / 2f64;
@@ -142,30 +131,30 @@ impl<'a> Game<'a>{
                         let coordinate = ((mx + ex)/2f64,(my+ey) / 2f64);
                         let explode = Explode::new(coordinate,ExplodeType::type1);
                         self.explodes.push(explode);
-                        enemy_del_index_list.push(i);
-                        bullet_del_index_list.push(i);
+
                     }
                 }
             }
         }
-        for index in enemy_del_index_list{
-            self.enemys.remove(index);
-        }
-        for index in bullet_del_index_list{
-            self.super_man_shoot_bullets.remove(index);
-        }
+
+        self.enemys.retain(|x|{
+            return !enemy_del_coordinate_list.contains(&x.coordinate);
+        });
+        self.super_man_shoot_bullets.retain(|x|{
+            return !bullet_del_coordinate_list.contains(&x.coordinate);
+        });
 
         //删除敌人失效的子弹
-        let mut del_index_list = Vec::new();
-        for (index,bullet) in self.explodes.iter_mut().enumerate(){
+        let mut del_coordinate_list = Vec::new();
+        for bullet in self.explodes.iter_mut(){
             bullet.exec();
             if bullet.exist_time <= 0{
-                del_index_list.push(index);
+                del_coordinate_list.push(bullet.coordinate);
             }
         }
-        for index in del_index_list{
-            self.explodes.remove(index);
-        }
+        self.explodes.retain(|x| {
+            return !del_coordinate_list.contains(&x.coordinate);
+        });
 
     }
 
