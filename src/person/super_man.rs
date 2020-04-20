@@ -6,13 +6,32 @@ use crate::weapon::bullet::Bullet;
 use std::f64::consts;
 
 
+///敌人类型
+pub enum Category{
+    ///等级1,
+    type1,
+    ///等级二
+    type2,
+}
+
+///状态
+pub enum Status{
+    ///出生
+    Birth(u32),
+    ///活着
+    Alive,
+}
+
 ///超人
-pub struct Super_man<'a>{
+pub struct SuperMan{
     ///坐标点
     pub coordinate:comm::COORDINATE,
-    win_size:comm::WIN_SIZE,
-    ///image
-    pub image: &'a G2dTexture,
+    ///窗口大小
+    pub win_size:comm::WIN_SIZE,
+    ///类别
+    pub category: Category,
+    ///状态
+    pub status:Status,
     angle:f64, //角度
     step_time:u32,
     step_length:f64,
@@ -22,17 +41,18 @@ pub struct Super_man<'a>{
 }
 
 ///敌人
-impl <'a> Super_man<'a>{
+impl  SuperMan{
     ///新建敌人
     /// per:百分比，最大100
-    pub fn new(per:f64,image:&'a G2dTexture) -> Super_man{
+    pub fn new(per:f64,category: Category) -> SuperMan{
         assert!(per < 1f64);
         let width:f64 = comm::WIN_WIDTH * per;
         let height:f64 = comm::WIN_HEIGHT * per;
-        Super_man{
+        SuperMan{
             coordinate:(250f64,250f64),
             win_size:[width,height],
-            image:image,
+            category,
+            status:Status::Birth(comm::SUPER_MAN_ALIVE_LAST_TIME),
             angle:0f64,
             step_time:comm::SUPER_MAN_STEP_TIME,
             step_length:comm::SUPER_MAN_LENGTH,
@@ -58,11 +78,20 @@ impl <'a> Super_man<'a>{
         } else {
             self.step_time = self.step_time - 1u32;
         }
+
+        if let Status::Birth(t) = self.status{
+            //修改成长状态
+            if t <= 0u32{
+                self.status = Status::Alive;
+            }else{
+                self.status = Status::Birth(t - 1);
+            }
+        }
     }
 
         ///发送子弹
     fn shoot(& mut self) -> Bullet{
-        Bullet::new_with_angle(self.coordinate,self.angle,weapon::bullet::BulletType::level2)
+        return Bullet::new_with_angle(self.coordinate,self.angle,weapon::bullet::BulletType::level2)
     }
 
     ///运动,返回射击的子弹
@@ -144,22 +173,41 @@ impl <'a> Super_man<'a>{
     }
 }
 
+///获取坐标
+impl comm::COORDINATE_TRAIT for SuperMan{
+    fn coordinate(&self) -> (f64, f64) {
+        self.coordinate
+    }
+}
+
 ///画敌人
-impl <'a> crate::map::draw::Draw for Super_man<'a>{
+impl  crate::map::draw::Draw for SuperMan{
 
     ///画图
     fn draw (& self, glyphs:&mut Glyphs,c:Context, g:&mut G2d, device:&mut gfx_device_gl::Device){
         let ref win_size = self.win_size;
         let (x,y) = self.coordinate;
 
-        // 获取图片尺寸
-        let (width, height) = self.image.get_size();
-        Image::new().draw(
-            self.image,
-            &c.draw_state,
-            c.transform
-                .trans(x, y) //相对位置
-                .scale(self.win_size[0] / width as f64, self.win_size[1] / height as f64),    //缩放
-            g);
+        unsafe {
+            let mut texture: &Option<G2dTexture> = &None;
+            match self.category {
+                Category::type1 => texture = &comm::SUPER_MAN_TEXTURE1,
+                Category::type2 => texture = &comm::SUPER_MAN_TEXTURE2,
+                _ => {}
+            }
+
+            if let Some(image) = texture{
+                // 获取图片尺寸
+                let (width, height) = image.get_size();
+                let (x,y) = self.coordinate;
+                Image::new().draw(
+                    image,
+                    &c.draw_state,
+                    c.transform
+                        .trans(x, y) //相对位置
+                        .scale(self.win_size[0] / width as f64, self.win_size[1] / height as f64),    //缩放
+                    g);
+            }
+        }
     }
 }

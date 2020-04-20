@@ -11,6 +11,11 @@ pub const FONT_SIZE:u32 = 32u32;
 
 ///坐标
 pub type COORDINATE = (f64,f64);
+///坐标位置
+pub trait COORDINATE_TRAIT{
+    ///获取坐标点
+    fn coordinate(&self) -> COORDINATE;
+}
 
 ///窗口宽
 pub const WIN_WIDTH:f64 = 1000f64;
@@ -20,6 +25,10 @@ pub const WIN_HEIGHT:f64 = 500f64;
 ///窗口大小
 pub type WIN_SIZE = [f64;2];
 
+///超人1
+pub static mut SUPER_MAN_TEXTURE1:Option<G2dTexture> = None;
+///超人2
+pub static mut SUPER_MAN_TEXTURE2:Option<G2dTexture> = None;
 ///子弹图片1
 pub static mut BULLET_TEXTURE_LEVEL1:Option<G2dTexture> = None;
 ///子弹图片2
@@ -37,6 +46,8 @@ pub static mut EXPLODE_TEXTURE2:Option<G2dTexture> = None;
 ///鼠标位置
 pub static mut CURRENT_MOUSE_COORDINATE:Option<COORDINATE> = None;
 
+///超人出生状态维持时间
+pub const SUPER_MAN_ALIVE_LAST_TIME:u32 = 6000u32;
 ///生产敌人的间隔时间
 pub const CREATE_ENEMY_SPLIT_TIME:u32 = 1000u32;
 ///子弹一运动时间
@@ -75,4 +86,18 @@ pub fn calc_angle(start:COORDINATE,target:COORDINATE) -> f64{
         angle = -(consts::PI - angle);
     }
     angle
+}
+
+///清理失效坐标数据
+pub fn clean_coordinate<T:COORDINATE_TRAIT>(objs:&mut Vec<T>){
+    let mut del_coordinate_list = Vec::new();
+    for obj in objs.iter_mut(){
+        let (x,y) = obj.coordinate();
+        if x > WIN_WIDTH || x <= 0f64 || y > WIN_HEIGHT || y <= 0f64{
+            del_coordinate_list.push(obj.coordinate());
+        }
+    }
+    objs.retain(|x|{
+        return !del_coordinate_list.contains(&x.coordinate())
+    });
 }

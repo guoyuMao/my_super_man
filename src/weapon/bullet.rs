@@ -67,6 +67,14 @@ impl  Bullet{
     }
 }
 
+
+///获取坐标
+impl comm::COORDINATE_TRAIT for Bullet{
+    fn coordinate(&self) -> (f64, f64) {
+        self.coordinate
+    }
+}
+
 ///画敌人
 impl  crate::map::draw::Draw for Bullet {
     ///画图

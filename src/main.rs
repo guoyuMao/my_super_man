@@ -34,9 +34,15 @@ fn main() {
     //字体
     let mut glyphs:Glyphs = window.load_font(assets.join("FiraSans-Regular.ttf")).unwrap();
     //图片
-    let super_man_image: G2dTexture = Texture::from_path(
+    let super_man_image1: G2dTexture = Texture::from_path(
         &mut window.create_texture_context(),
-        &assets.join("super_man.png"),
+        &assets.join("super_man1.png"),
+        Flip::None,
+        &TextureSettings::new()
+    ).unwrap();
+    let super_man_image2: G2dTexture = Texture::from_path(
+        &mut window.create_texture_context(),
+        &assets.join("super_man2.png"),
         Flip::None,
         &TextureSettings::new()
     ).unwrap();
@@ -84,6 +90,8 @@ fn main() {
 
     unsafe{
         //初始化加载子弹图片
+        config::comm::SUPER_MAN_TEXTURE1 = Option::Some(super_man_image1);
+        config::comm::SUPER_MAN_TEXTURE2 = Option::Some(super_man_image2);
         config::comm::BULLET_TEXTURE_LEVEL1 = Option::Some(bullet1_logo);
         config::comm::BULLET_TEXTURE_LEVEL2 = Option::Some(bullet2_logo);
         config::comm::ENEMY_TEXTURE1 = Option::Some(enemy_image1);
@@ -92,7 +100,7 @@ fn main() {
         config::comm::EXPLODE_TEXTURE2 = Option::Some(explode_logo2);
     }
 
-    let super_man = person::super_man::Super_man::new(config::comm::PERSON_SIZE, &super_man_image);
+    let super_man = person::super_man::SuperMan::new(config::comm::PERSON_SIZE, person::super_man::Category::type1);
 
     ///游戏实体
     let mut game = Game::new(super_man);
