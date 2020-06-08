@@ -3,6 +3,18 @@ use std::option::Option;
 use piston_window::G2dTexture;
 use std::f64::consts;
 
+///定义颜色类型
+pub type Colour = [f32;4];
+///黑色
+pub const BLACK: Colour = [0.0, 0.0, 0.0, 1.0];
+///字体大小
+pub const FONT_SIZE1:u32 = 32u32;
+///字体大小
+pub const FONT_SIZE10:u32 = 15u32;
+
+///数据库接地址
+pub const DATABASE_URL:&str ="mysql://my_super_man_user:my_super_man_password@127.0.0.1:3306/my_super_man_db?pool_min=10&pool_max=100&conn_ttl=10";
+
 ///人物所占屏幕百分比
 pub const PERSON_SIZE:f64 = 0.05f64;
 
@@ -12,7 +24,7 @@ pub const FONT_SIZE:u32 = 32u32;
 ///坐标
 pub type COORDINATE = (f64,f64);
 ///坐标位置
-pub trait COORDINATE_TRAIT{
+pub trait CoordinateTrait{
     ///获取坐标点
     fn coordinate(&self) -> COORDINATE;
 }
@@ -23,7 +35,7 @@ pub const WIN_WIDTH:f64 = 1000f64;
 pub const WIN_HEIGHT:f64 = 500f64;
 
 ///窗口大小
-pub type WIN_SIZE = [f64;2];
+pub type WinSize = [f64;2];
 
 ///超人1
 pub static mut SUPER_MAN_TEXTURE1:Option<G2dTexture> = None;
@@ -42,6 +54,9 @@ pub static mut EXPLODE_TEXTURE1:Option<G2dTexture> = None;
 ///爆炸2
 pub static mut EXPLODE_TEXTURE2:Option<G2dTexture> = None;
 
+///鼠标连续两次点击的判别时间
+pub const INTERVAL_TIME_OF_TWO_CLICK:u64 = 200u64;
+
 
 ///鼠标位置
 pub static mut CURRENT_MOUSE_COORDINATE:Option<COORDINATE> = None;
@@ -50,6 +65,8 @@ pub static mut CURRENT_MOUSE_COORDINATE:Option<COORDINATE> = None;
 pub const SUPER_MAN_ALIVE_LAST_TIME:u32 = 6000u32;
 ///生产敌人的间隔时间
 pub const CREATE_ENEMY_SPLIT_TIME:u32 = 1000u32;
+///敌人出生的位置不能在超人多少范围内
+pub const CREATE_ENEMY_DISTANT:f64 = 50f64;
 ///子弹一运动时间
 pub const BULLET_STEP_TIME:u32=1u32;
 ///子弹一次运动距离
@@ -88,8 +105,18 @@ pub fn calc_angle(start:COORDINATE,target:COORDINATE) -> f64{
     angle
 }
 
+///计算距离
+pub fn calc_distance(start:COORDINATE,target:COORDINATE) -> f64{
+    let (x,y) = start;
+    let (x1,y1) = target;
+    let a = x1 - x; //a
+    let b = y1 - y; //b
+    let c = (a*a + b * b).sqrt();
+    return c;
+}
+
 ///清理失效坐标数据
-pub fn clean_coordinate<T:COORDINATE_TRAIT>(objs:&mut Vec<T>){
+pub fn clean_coordinate<T:CoordinateTrait>(objs:&mut Vec<T>){
     let mut del_coordinate_list = Vec::new();
     for obj in objs.iter_mut(){
         let (x,y) = obj.coordinate();
