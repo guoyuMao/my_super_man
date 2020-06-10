@@ -64,13 +64,13 @@ pub static mut CURRENT_MOUSE_COORDINATE:Option<COORDINATE> = None;
 ///超人出生状态维持时间
 pub const SUPER_MAN_ALIVE_LAST_TIME:u32 = 6000u32;
 ///生产敌人的间隔时间
-pub const CREATE_ENEMY_SPLIT_TIME:u32 = 1000u32;
+pub const CREATE_ENEMY_SPLIT_TIME:u32 = 2000u32;
 ///敌人出生的位置不能在超人多少范围内
 pub const CREATE_ENEMY_DISTANT:f64 = 50f64;
 ///子弹一运动时间
-pub const BULLET_STEP_TIME:u32=1u32;
+pub const BULLET_STEP_TIME:u32=0u32;
 ///子弹一次运动距离
-pub const BULLET_STEP_LENGTH:f64=1f64;
+pub const BULLET_STEP_LENGTH:f64=0.5f64;
 ///敌人一次运动消耗时间
 pub const ENEMY_STEP_TIME:u32=5u32;
 ///敌人一次运动的距离
@@ -81,7 +81,7 @@ pub const SUPER_MAN_STEP_TIME:u32=5u32;
 pub const SUPER_MAN_LENGTH:f64=0.5f64;
 
 ///敌人发送子弹的间隔时间
-pub const ENEMY_OPEN_FIRE_SPLIT_TIME:u16 = 1000u16;
+pub const ENEMY_OPEN_FIRE_SPLIT_TIME:u16 = 2000u16;
 ///超人发送子弹间隔时间
 pub const SUPER_MAN_OPEN_FIRE_SPLIT_TIME:u16 = 10u16;
 

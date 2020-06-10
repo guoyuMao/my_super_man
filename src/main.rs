@@ -17,11 +17,12 @@ pub mod weapon;
 pub mod person;
 pub mod game;
 fn main() {
+
     let opengl = OpenGL::V3_2;
 
     let size = Size{
-        width:config::comm::WIN_WIDTH,
-        height:config::comm::WIN_HEIGHT
+        width:config::config::WIN_WIDTH,
+        height:config::config::WIN_HEIGHT
     };
     let mut window: PistonWindow = WindowSettings::new(
         "my test title", size)
@@ -90,20 +91,21 @@ fn main() {
 
     unsafe{
         //初始化加载子弹图片
-        config::comm::SUPER_MAN_TEXTURE1 = Option::Some(super_man_image1);
-        config::comm::SUPER_MAN_TEXTURE2 = Option::Some(super_man_image2);
-        config::comm::BULLET_TEXTURE_LEVEL1 = Option::Some(bullet1_logo);
-        config::comm::BULLET_TEXTURE_LEVEL2 = Option::Some(bullet2_logo);
-        config::comm::ENEMY_TEXTURE1 = Option::Some(enemy_image1);
-        config::comm::ENEMY_TEXTURE2 = Option::Some(enemy_image2);
-        config::comm::EXPLODE_TEXTURE1 = Option::Some(explode_logo1);
-        config::comm::EXPLODE_TEXTURE2 = Option::Some(explode_logo2);
+        config::config::SUPER_MAN_TEXTURE1 = Option::Some(super_man_image1);
+        config::config::SUPER_MAN_TEXTURE2 = Option::Some(super_man_image2);
+        config::config::BULLET_TEXTURE_LEVEL1 = Option::Some(bullet1_logo);
+        config::config::BULLET_TEXTURE_LEVEL2 = Option::Some(bullet2_logo);
+        config::config::ENEMY_TEXTURE1 = Option::Some(enemy_image1);
+        config::config::ENEMY_TEXTURE2 = Option::Some(enemy_image2);
+        config::config::EXPLODE_TEXTURE1 = Option::Some(explode_logo1);
+        config::config::EXPLODE_TEXTURE2 = Option::Some(explode_logo2);
     }
 
-    let super_man = person::super_man::SuperMan::new(config::comm::PERSON_SIZE, person::super_man::Category::type1);
 
+    //创建自己的超人
+    let super_man = person::super_man::SuperMan::new(config::config::PERSON_SIZE, person::super_man::Category::type1);
     ///游戏实体
-    let mut game = Game::new(super_man);
+    let mut game = Game::new(vec!(super_man));
 
     while let Some(e) = window.next(){
         game.run(&e);
